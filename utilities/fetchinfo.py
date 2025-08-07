@@ -9,7 +9,7 @@ def fetch_info(url):
         response = requests.get(url)
         response.raise_for_status()  # Raise an error for bad responses
         logging.info("Data fetched successfully")
-        return response.text  # Assuming the response is in JSON format
+        return response.json()  # Assuming the response is in JSON format
     except requests.exceptions.RequestException as e:
         logging.critical(f"An error occurred: {e}")
         return None

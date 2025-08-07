@@ -44,7 +44,7 @@ def send_update(div):
     if text:
         text[0] = f"<b>{text[0]}</b>" 
         text_message = "\n".join(text)
-        text_message += "\n\n" + "\n".join(links) if [link for link in links if not link.lower().endswith(".pdf")] else ""
+        text_message += "\n\n" + "\n".join(links)
         asyncio.run(send_message(text_message, chat_id))
     if links:
         asyncio.run(send_documents([telegram.InputMediaDocument(link) for link in links if link.lower().endswith(".pdf")], chat_id))

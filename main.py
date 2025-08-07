@@ -4,11 +4,13 @@ from utilities.sendmessages import send_update
 
 
 def main():
-    parser = UpdateParser("http://eng.cu.edu.eg/ar/credit-hour-system/")
+    # parser = UpdateParser("http://eng.cu.edu.eg/ar/credit-hour-system/")
+    parser = UpdateParser("https://eng.cu.edu.eg/ar/wp-json/wp/v2/pages/1034")
     new_updates = compare_to_json(parser.divinfo_list)
     if new_updates:
         print("New announcements found")
         for update in reversed(new_updates):
+            
             send_update(update)
     else:
         print("No new updates found.")

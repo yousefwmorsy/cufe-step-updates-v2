@@ -3,9 +3,9 @@ from utilities.fetchinfo import fetch_info
 
 class UpdateParser:
     def __init__(self, url):
-        self.html_content = fetch_info(url)
+        self.html_content = fetch_info(url)["content"]["rendered"]
         self.soup = BeautifulSoup(self.html_content, 'html.parser')
-        self.divs = self.parse_html() + self.parse_old_html()
+        self.divs = self.parse_divs()
         self.divinfo_list = [DivInfo(div).jsonify() for div in self.divs]
 
     
@@ -24,6 +24,12 @@ class UpdateParser:
         else:
             print('Target div not found')
             return []
+
+    def parse_divs(self):
+        divs = self.soup.select("div:nth-of-type(2) > div")
+        print(divs)
+        return divs
+
         
 
 class DivInfo:
