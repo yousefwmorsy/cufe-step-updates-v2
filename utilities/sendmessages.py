@@ -1,6 +1,9 @@
 import asyncio
 import telegram
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Load environment variables from .env if present
 try:
@@ -47,4 +50,7 @@ def send_update(div):
         text_message += "\n\n" + "\n".join(links)
         asyncio.run(send_message(text_message, chat_id))
     if links:
-        asyncio.run(send_documents([telegram.InputMediaDocument(link) for link in links if link.lower().endswith(".pdf")], chat_id))
+        try:
+            asyncio.run(send_documents([telegram.InputMediaDocument(link) for link in links if link.lower().endswith(".pdf")], chat_id))
+        except Exception as e:
+            logging.warning(f"Error sending documents: {e}")
