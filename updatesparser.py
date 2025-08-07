@@ -27,7 +27,6 @@ class UpdateParser:
 
     def parse_divs(self):
         divs = self.soup.select("div:nth-of-type(2) > div")
-        print(divs)
         return divs
 
         
