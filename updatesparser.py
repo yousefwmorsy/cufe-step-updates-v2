@@ -6,8 +6,19 @@ class UpdateParser:
         self.html_content = fetch_info(url)["content"]["rendered"]
         self.soup = BeautifulSoup(self.html_content, 'html.parser')
         self.divs = self.parse_divs()
-        self.divinfo_list = [DivInfo(div).jsonify() for div in self.divs]
+        self.divinfo_list = self.validate_divs()
+        
+        
 
+    def validate_divs(self):
+        divinfo_list = []
+        for div in self.divs:
+            divinfo = DivInfo(div).jsonify()
+            # Check if text is not empty or just whitespace
+            text_content = ''.join(divinfo["text"]).strip()
+            if text_content:
+                divinfo_list.append(divinfo)
+        return divinfo_list
     
     def parse_html(self):
         divs = self.soup.select("html > body > div:nth-of-type(1) > div > div > div > div:nth-of-type(2) > div")

@@ -10,7 +10,6 @@ def main():
     if new_updates:
         print("New announcements found")
         for update in reversed(new_updates):
-            
             send_update(update)
     else:
         print("No new updates found.")
