@@ -1,13 +1,13 @@
 from bs4 import BeautifulSoup
 from utilities.fetchinfo import fetch_info
+import re
 
 class UpdateParser:
     def __init__(self, url):
         self.html_content = fetch_info(url)["content"]["rendered"]
         self.soup = BeautifulSoup(self.html_content, 'html.parser')
         self.divs = self.parse_divs()
-        self.divinfo_list = self.validate_divs()
-        
+        self.divinfo_list = self.validate_divs()  
         
 
     def validate_divs(self):
@@ -19,9 +19,9 @@ class UpdateParser:
             if text_content:
                 divinfo_list.append(divinfo)
         return divinfo_list
-    
+
     def parse_html(self):
-        divs = self.soup.select("html > body > div:nth-of-type(1) > div > div > div > div:nth-of-type(2) > div")
+        divs = self.soup.select("html > body > div:nth-of-type(1) > div > div > div > div:nth-of-type(2) > div > div > div")
         if divs:
             return divs
         else:
@@ -37,8 +37,9 @@ class UpdateParser:
             return []
 
     def parse_divs(self):
-        divs = self.soup.select("div:nth-of-type(2) > div")
+        divs = self.soup.select("div:nth-of-type(2) > div > div > div > div > div > div")
         return divs
+    
 
         
 
