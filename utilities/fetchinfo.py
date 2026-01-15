@@ -16,7 +16,7 @@ HEADERS = {
 def fetch_info(url):
     try:
         logging.info(f"Fetching data from {url}")
-        response = requests.get(url, headers=HEADERS, timeout=15)
+        response = requests.get(url, headers=HEADERS, timeout=30)
         logging.info("Data fetched successfully")
         return response.json()  # Assuming the response is in JSON format
     except requests.exceptions.RequestException as e:
