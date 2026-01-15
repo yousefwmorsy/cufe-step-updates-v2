@@ -5,7 +5,7 @@ import asyncio
 
 async def main():
     # parser = UpdateParser("http://eng.cu.edu.eg/ar/credit-hour-system/")
-    parser = UpdateParser("https://eng.cu.edu.eg/wp-json/wp/v2/pages/1034")
+    parser = UpdateParser("https://eng.cu.edu.eg/ar/wp-json/wp/v2/pages/1034")
     new_updates = compare_to_json(parser.divinfo_list)
     if new_updates:
         print("New announcements found")

@@ -16,9 +16,26 @@ HEADERS = {
 def fetch_info(url):
     try:
         logging.info(f"Fetching data from {url}")
-        response = requests.get(url, headers=HEADERS, timeout=15)
+        response = requests.get(url, headers=HEADERS, timeout=30)
         logging.info("Data fetched successfully")
-        return response.json()  # Assuming the response is in JSON format
+        logging.info(f"Status: {response.status_code}")
+        logging.info(f"Content-Type: {response.headers.get('Content-Type')}")
+
+        response.raise_for_status()
+
+        if not response.text.strip():
+            raise ValueError("Empty response body")
+
+        if "application/json" not in response.headers.get("Content-Type", ""):
+            raise ValueError("Response is not JSON")
+
+        return response.json()
+
+    except Exception as e:
+        logging.critical(f"Fetch failed for {url}: {e}")
+        logging.critical(f"Response preview: {response.text[:300] if 'r' in locals() else 'No response'}")
+        return None
+
     except requests.exceptions.RequestException as e:
         logging.critical(f"An error occurred: {e}")
         return None
