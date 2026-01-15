@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from utilities.fetchinfo import fetch_info
+from utilities.fetchinfo import fetch_info, fetch_info_html
 import re
 
 DATE_REGEX = re.compile(r"\b\d{4}[-/]\d{2}[-/]\d{2}\b")
@@ -7,7 +7,8 @@ DATE_REGEX = re.compile(r"\b\d{4}[-/]\d{2}[-/]\d{2}\b")
 
 class UpdateParser:
     def __init__(self, url):
-        html = fetch_info(url)["content"]["rendered"]
+        #html = fetch_info(url)["content"]["rendered"]
+        html = fetch_info_html(url)
         self.soup = BeautifulSoup(html, "html.parser")
 
         self._clean_html()
@@ -22,7 +23,7 @@ class UpdateParser:
 
     def _find_announcements_root(self):
         anchor = self.soup.find(
-            lambda tag: tag.name in ("div", "p")
+            lambda tag: tag.name in ("strong")
             and "الإعلانات العامة للبرامج التخصصية" in tag.get_text(strip=True)
         )
 

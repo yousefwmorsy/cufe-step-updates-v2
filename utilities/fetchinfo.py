@@ -13,6 +13,13 @@ HEADERS = {
     "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
 }
 
+def fetch_info_html(url):
+    logging.info(f"Fetching data from {url}")
+    response = requests.get(url)
+    logging.info("Data fetched successfully")
+    logging.critical(f"Response preview: {response.text}")
+    return response.text
+
 def fetch_info(url):
     try:
         logging.info(f"Fetching data from {url}")
