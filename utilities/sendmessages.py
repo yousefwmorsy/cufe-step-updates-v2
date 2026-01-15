@@ -13,44 +13,70 @@ except ImportError:
     pass
 
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
-if not TOKEN or not chat_id:
+if not TOKEN or not CHAT_ID:
     raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set in environment variables or .env file.")
 
 bot = telegram.Bot(token=TOKEN)
 
-async def send_message(text, chat_id):
-    async with bot:
-        await bot.send_message(text=text, chat_id=chat_id, parse_mode="HTML")
+async def send_message(text):
+    await bot.send_message(
+        chat_id=CHAT_ID,
+        text=text,
+        parse_mode="HTML",
+        disable_web_page_preview=True
+    )
 
-async def send_photo(photo, chat_id):
-    async with bot:
-        await bot.send_photo(photo=photo, chat_id=chat_id)
 
-async def send_documents(documents, chat_id):
-    async with bot:
-        await bot.send_media_group(media=documents, chat_id=chat_id)
+async def send_photo(photo_url):
+    await bot.send_photo(
+        chat_id=CHAT_ID,
+        photo=photo_url
+    )
 
-def send_update(div):
-    text = div.get('text', [])
-    links = div.get('links', [])
-    images = div.get('images', [])
-    ytvideos = div.get('ytvideos', [])
 
-    if images:
-        for image in images:
-            asyncio.run(send_photo(image, chat_id))
-    if ytvideos:
-        for video in ytvideos:
-            asyncio.run(send_message(video, chat_id))
-    if text:
-        text[0] = f"<b>{text[0]}</b>" 
-        text_message = "\n".join(text)
-        text_message += "\n\n" + "\n".join(links)
-        asyncio.run(send_message(text_message, chat_id))
-    if links:
+async def send_pdf(pdf_url):
+    await bot.send_document(
+        chat_id=CHAT_ID,
+        document=pdf_url
+    )
+
+
+async def send_documents(pdfs):
+    await bot.send_media_group(
+        chat_id=CHAT_ID,
+        media=pdfs
+    )
+
+async def send_update(ann):
+    text = ann.get("text", [])
+    links = ann.get("links", [])
+    images = ann.get("images", [])
+    ytvideos = ann.get("ytvideos", [])
+
+    for image in images:
         try:
-            asyncio.run(send_documents([telegram.InputMediaDocument(link) for link in links if link.lower().endswith(".pdf")], chat_id))
+            await send_photo(image)
         except Exception as e:
-            logging.warning(f"Error sending documents: {e}")
+            logging.warning(f"Failed to send image {image}: {e}")
+
+    for video in ytvideos:
+        await send_message(video)
+
+    pdf_links = [l for l in links if l.lower().endswith(".pdf")]
+    #await send_documents([telegram.InputMediaDocument(link) for link in pdf_links])
+    for pdf in pdf_links:
+        try:
+            await send_pdf(pdf)
+        except Exception as e:
+            logging.warning(f"Failed to send PDF {pdf}: {e}")
+
+    if text:
+        text[0] = f"<b>{text[0]}</b>"
+        message = "\n".join(text)
+
+        if links:
+            message += "\n\n" + "\n".join(links)
+
+        await send_message(message)

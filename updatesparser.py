@@ -2,43 +2,103 @@ from bs4 import BeautifulSoup
 from utilities.fetchinfo import fetch_info
 import re
 
+DATE_REGEX = re.compile(r"\b\d{4}[-/]\d{2}[-/]\d{2}\b")
+
+
 class UpdateParser:
     def __init__(self, url):
-        self.html_content = fetch_info(url)["content"]["rendered"]
-        self.soup = BeautifulSoup(self.html_content, 'html.parser')
-        self.divs = self.parse_divs()
-        self.divinfo_list = self.validate_divs()  
-        
+        html = fetch_info(url)["content"]["rendered"]
+        self.soup = BeautifulSoup(html, "html.parser")
 
-    def validate_divs(self):
-        divinfo_list = []
-        for div in self.divs:
-            divinfo = DivInfo(div).jsonify()
-            # Check if text is not empty or just whitespace
-            text_content = ''.join(divinfo["text"]).strip()
-            if text_content:
-                divinfo_list.append(divinfo)
-        return divinfo_list
+        self._clean_html()
+        self.divinfo_list = self._extract_announcements()
 
-    def parse_html(self):
-        divs = self.soup.select("html > body > div:nth-of-type(1) > div > div > div > div:nth-of-type(2) > div > div > div")
-        if divs:
-            return divs
-        else:
-            print('Target div not found')
+
+    def _clean_html(self):
+        for tag in self.soup([
+            "script", "style", "nav", "footer", "header", "noscript"
+        ]):
+            tag.decompose()
+
+    def _find_announcements_root(self):
+        anchor = self.soup.find(
+            lambda tag: tag.name in ("div", "p")
+            and "الإعلانات العامة للبرامج التخصصية" in tag.get_text(strip=True)
+        )
+
+        if not anchor:
+            # Fallback: use body
+            return self.soup.body
+
+        return anchor.find_next("div")
+
+    def _extract_announcements(self):
+        root = self._find_announcements_root()
+        if not root:
             return []
 
-    def parse_old_html(self):
-        divs = self.soup.select("html > body > div:nth-of-type(1) > div > div > div > div")
-        if divs:
-            return divs[2:-1]
-        else:
-            print('Target div not found')
-            return []
+        nodes = list(root.descendants)
 
-    def parse_divs(self):
-        divs = self.soup.select("div:nth-of-type(2) > div > div > div > div > div > div")
-        return divs
+        announcements = []
+        current_nodes = []
+
+        for node in nodes:
+            if not hasattr(node, "name"):
+                continue
+
+            # Detect start of a new announcement via date
+            if node.name == "p":
+                text = node.get_text(strip=True)
+                if DATE_REGEX.search(text):
+                    if current_nodes:
+                        ann = self._parse_nodes(current_nodes)
+                        announcements.append(ann)
+                        current_nodes = []
+
+            if node.name in ("p", "a", "img", "iframe"):
+                current_nodes.append(node)
+
+        # Append last announcement
+        if current_nodes:
+            ann = self._parse_nodes(current_nodes)
+            announcements.append(ann)
+
+        return announcements
+
+    def _parse_nodes(self, nodes):
+        text = []
+        links = []
+        images = []
+        ytvideos = []
+
+        for node in nodes:
+            if node.name == "p":
+                t = node.get_text(strip=True)
+                if t and "Download file" not in t and "<<<" not in t:
+                    text.append(t)
+
+            elif node.name == "a":
+                href = node.get("href")
+                if href:
+                    links.append(href)
+
+            elif node.name == "img":
+                src = node.get("src")
+                if src:
+                    images.append(src)
+
+            elif node.name == "iframe":
+                src = node.get("src")
+                if src:
+                    ytvideos.append(src)
+
+        return {
+            "text": text,
+            "links": list(dict.fromkeys(links)),
+            "images": list(dict.fromkeys(images)),
+            "ytvideos": list(dict.fromkeys(ytvideos)),
+        }
+
     
 
         
