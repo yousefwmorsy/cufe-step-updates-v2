@@ -4,7 +4,7 @@ from utilities.sendmessages import send_update
 import asyncio
 
 async def main():
-    parser = UpdateParser("http://eng.cu.edu.eg/ar/credit-hour-system/")
+    parser = UpdateParser("http://ww2.eng.cu.edu.eg/ar/credit-hour-system/")
     #parser = UpdateParser("https://eng.cu.edu.eg/ar/wp-json/wp/v2/pages/1034")
     new_updates = compare_to_json(parser.divinfo_list)
     if new_updates:
